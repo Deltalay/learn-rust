@@ -48,6 +48,7 @@ pub fn generate_unique_string(length: u16, text: &str) -> String {
     );
     let final_result = first_base64_clone + &second_base64_clone;
     let mut result = hash(final_result, DEFAULT_COST).unwrap();
+    result = result[7..].to_string();
     if result.len() > length as usize {
         result.truncate(length as usize);
     } else {
