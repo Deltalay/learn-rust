@@ -8,3 +8,6 @@ rocket = "0.5.1"
 chrono = "0.4"
 diesel = { version = "2.2.0", features = ["sqlite", "returning_clauses_for_sqlite_3_35", "chrono"] }
 dotenvy = "0.15"
+bcrypt = "0.16.0"
+rand = "0.8.5"
+base64 = "0.22.1"

@@ -1,3 +1,6 @@
+use learn_rust::generate_unique_string;
+
 fn main() {
-    println!("Hello, world!");
+    let unique = generate_unique_string(10, "Hello World");
+    println!("{}", unique);
 }
