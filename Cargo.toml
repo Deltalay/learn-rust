@@ -4,3 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+rocket = "0.5.1"
+chrono = "0.4"
+diesel = { version = "2.2.0", features = ["sqlite", "returning_clauses_for_sqlite_3_35", "chrono"] }
+dotenvy = "0.15"
