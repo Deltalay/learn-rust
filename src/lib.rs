@@ -11,3 +11,12 @@ pub fn establish_connection() -> SqliteConnection {
     SqliteConnection::establish(&database_url)
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
 }
+
+pub fn generate_unique_string(length: i32, text: &str) -> &str {
+    "Hellos"
+}
+
+pub fn create_url(conn: &mut SqliteConnection, short_url: &str, expire_date: Option<chrono::NaiveDateTime>) {
+    use crate::schema::url;
+    let shorten_url = "";
+}
