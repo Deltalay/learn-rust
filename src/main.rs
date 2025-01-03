@@ -1,11 +1,11 @@
-use learn_rust::generate_unique_string;
+#[macro_use] extern crate rocket;
 
-fn main() {
+#[get("/")]
+fn index() -> &'static str {
+    "Hello, world!"
+}
 
-    let unique = generate_unique_string(10, "Hello World");
-    let unique2 = generate_unique_string(14, "Hello World");
-    let unique3 = generate_unique_string(12, "Hello World");
-    println!("{}", unique);
-    println!("{}", unique2);
-    println!("{}", unique3);
+#[launch]
+fn rocket() -> _ {
+    rocket::build().mount("/", routes![index])
 }
