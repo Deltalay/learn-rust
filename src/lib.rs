@@ -94,4 +94,5 @@ pub fn create_url(
         .returning(Url::as_returning())
         .get_result(conn)
         .expect("Error saving new url")
+        
 }

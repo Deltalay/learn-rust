@@ -21,14 +21,17 @@ struct URL<'r> {
 }
 
 #[post("/create_url", data = "<url_data>")]
-async fn create_url_route(url_data: Json<URL<'_>>, db: &State<DbConn>) -> String {
+async fn create_url_route(
+    url_data: Json<URL<'_>>,
+    db: &State<DbConn>,
+) -> Json<learn_rust::models::Url> {
     let mut conn = db.connection.lock().await;
     let expire = match url_data.expire {
         Some(expire_time) => expire_time,
         None => Utc::now().naive_utc() + Duration::days(1),
     };
-    create_url(&mut *conn, url_data.url, Some(expire));
-    "URL created successfully".to_string()
+    let data: learn_rust::models::Url = create_url(&mut *conn, url_data.url, Some(expire));
+    return Json(data);
 }
 
 #[get("/")]
