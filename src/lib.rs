@@ -6,6 +6,7 @@ use base64::{prelude::BASE64_URL_SAFE, Engine};
 use bcrypt::*;
 use diesel::{dsl::exists, prelude::*, select};
 use dotenvy::dotenv;
+use models::{NewUrl, Url};
 use rand::Rng;
 use std::env;
 pub fn establish_connection() -> SqliteConnection {
@@ -77,6 +78,20 @@ pub fn create_url(
     conn: &mut SqliteConnection,
     long_url: &str,
     expire_date: Option<chrono::NaiveDateTime>,
-) {
+) -> Url {
     use crate::schema::url;
+    let mut shorten_url = generate_unique_string(7, long_url);
+    while already_exist(conn, &shorten_url) {
+        shorten_url = generate_unique_string(7, long_url);
+    }
+    let new_url = NewUrl {
+        expires_at: expire_date,
+        short_url: &shorten_url,
+        long_url,
+    };
+    diesel::insert_into(url::table)
+        .values(&new_url)
+        .returning(Url::as_returning())
+        .get_result(conn)
+        .expect("Error saving new url")
 }
