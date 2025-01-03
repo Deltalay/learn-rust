@@ -13,6 +13,8 @@ struct DbConn {
 }
 
 //TODO: Implement backend first
+// FINISH CREATE
+// TODO: Implement Retrieve, and Delete
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(crate = "rocket::serde")]
 struct URL<'r> {
