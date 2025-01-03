@@ -1,9 +1,10 @@
 pub mod models;
 pub mod schema;
 
+use crate::schema::url::dsl::{short_url, url};
 use base64::{prelude::BASE64_URL_SAFE, Engine};
 use bcrypt::*;
-use diesel::prelude::*;
+use diesel::{dsl::exists, prelude::*, select};
 use dotenvy::dotenv;
 use rand::Rng;
 use std::env;
@@ -65,15 +66,17 @@ pub fn generate_unique_string(length: u16, text: &str) -> String {
     result
 }
 
-pub fn already_exist(shorten_url: &str) -> bool {
-    false
+pub fn already_exist(conn: &mut SqliteConnection, shorten_url: &str) -> bool {
+    let check_exist_url = select(exists(url.filter(short_url.eq(shorten_url))))
+        .get_result(conn)
+        .expect("Error checking short URL existence");
+    check_exist_url
 }
 
 pub fn create_url(
     conn: &mut SqliteConnection,
-    short_url: &str,
+    long_url: &str,
     expire_date: Option<chrono::NaiveDateTime>,
 ) {
     use crate::schema::url;
-    let shorten_url = "";
 }
