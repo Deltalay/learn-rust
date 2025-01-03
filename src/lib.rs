@@ -19,6 +19,9 @@ pub fn generate_random_number(min: u32, max: u32) -> u32 {
     let n: u32 = rng.gen_range(min..max);
     return n;
 }
+// TODO: Make sure it does not return any symbol.
+// TURN OUT YOU CANNOT CHANGE THE FORMAT IN BCRYPT -_-
+// SO I WILL JUST USE SHA256
 pub fn generate_unique_string(length: u16, text: &str) -> String {
     if length > 60 {
         panic!("Length is out of bound!")
@@ -49,6 +52,7 @@ pub fn generate_unique_string(length: u16, text: &str) -> String {
     let final_result = first_base64_clone + &second_base64_clone;
     let mut result = hash(final_result, DEFAULT_COST).unwrap();
     result = result[7..].to_string();
+    result = sha256::digest(result);
     if result.len() > length as usize {
         result.truncate(length as usize);
     } else {
