@@ -2,6 +2,7 @@
 extern crate rocket;
 use chrono::{Duration, Utc};
 use diesel::prelude::*;
+use learn_rust::schema::url::{access_count, short_url};
 use learn_rust::{already_exist, create_url, establish_connection, return_original_url};
 use rocket::http::Status;
 use rocket::response::{status, Redirect};
@@ -47,7 +48,20 @@ async fn redirect_user<'a>(
     let mut conn = db.connection.lock().await;
     if already_exist(&mut *conn, key) {
         match return_original_url(&mut *conn, key) {
-            Some(full_url) => Ok(Redirect::to(full_url)),
+            Some(full_url) => {
+                use learn_rust::schema::url::dsl::url;
+                let update_access_view = diesel::update(url.filter(short_url.eq(key)))
+                    .set(access_count.eq(access_count + 1))
+                    .execute(&mut *conn)
+                    .map_err(|err| err.to_string());
+                match update_access_view {
+                    Ok(_) => Ok(Redirect::to(full_url)),
+                    Err(e) => Err(status::Custom(
+                        Status::InternalServerError,
+                        format!("Something went wrong: {}", e), 
+                    )),
+                }
+            }
             None => Err(status::Custom(
                 Status::NotFound,
                 "The URL is not found in the database".to_string(),
