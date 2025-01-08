@@ -44,7 +44,7 @@ async fn redirect_user<'a>(
     db: &State<DbConn>,
     key: &'a str,
 ) -> Result<Redirect, status::Custom<String>> {
-    // TODO: LET TRY TO FIND THE KEY FIRST BEFORE SENDIMG ANY ERROR
+    // TODOL Check expire
     let mut conn = db.connection.lock().await;
     if already_exist(&mut *conn, key) {
         match return_original_url(&mut *conn, key) {
@@ -58,7 +58,7 @@ async fn redirect_user<'a>(
                     Ok(_) => Ok(Redirect::to(full_url)),
                     Err(e) => Err(status::Custom(
                         Status::InternalServerError,
-                        format!("Something went wrong: {}", e), 
+                        format!("Something went wrong: {}", e),
                     )),
                 }
             }
