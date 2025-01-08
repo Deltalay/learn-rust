@@ -8,6 +8,7 @@ use diesel::{dsl::exists, prelude::*, select};
 use dotenvy::dotenv;
 use models::{NewUrl, Url};
 use rand::Rng;
+use schema::url::long_url;
 use std::env;
 pub fn establish_connection() -> SqliteConnection {
     dotenv().ok();
@@ -74,25 +75,33 @@ pub fn already_exist(conn: &mut SqliteConnection, shorten_url: &str) -> bool {
     check_exist_url
 }
 
+pub fn return_original_url(conn: &mut SqliteConnection, key_url: &str) -> Option<String> {
+    let get_full_url = url
+        .filter(short_url.eq(key_url))
+        .select(long_url)
+        .first::<String>(conn)
+        .ok();
+    get_full_url
+}
+
 pub fn create_url(
     conn: &mut SqliteConnection,
-    long_url: &str,
+    long_url_string: &str,
     expire_date: Option<chrono::NaiveDateTime>,
 ) -> Url {
     use crate::schema::url;
-    let mut shorten_url = generate_unique_string(7, long_url);
+    let mut shorten_url = generate_unique_string(7, long_url_string);
     while already_exist(conn, &shorten_url) {
-        shorten_url = generate_unique_string(7, long_url);
+        shorten_url = generate_unique_string(7, long_url_string);
     }
     let new_url = NewUrl {
         expires_at: expire_date,
         short_url: &shorten_url,
-        long_url,
+        long_url: long_url_string,
     };
     diesel::insert_into(url::table)
         .values(&new_url)
         .returning(Url::as_returning())
         .get_result(conn)
         .expect("Error saving new url")
-        
 }

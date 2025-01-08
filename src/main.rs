@@ -2,7 +2,9 @@
 extern crate rocket;
 use chrono::{Duration, Utc};
 use diesel::prelude::*;
-use learn_rust::{create_url, establish_connection};
+use learn_rust::{already_exist, create_url, establish_connection, return_original_url};
+use rocket::http::Status;
+use rocket::response::{status, Redirect};
 use rocket::serde::json::Json;
 use rocket::serde::Deserialize;
 use rocket::tokio::sync::Mutex;
@@ -36,6 +38,29 @@ async fn create_url_route(
     return Json(data);
 }
 
+#[get("/<key>")]
+async fn redirect_user<'a>(
+    db: &State<DbConn>,
+    key: &'a str,
+) -> Result<Redirect, status::Custom<String>> {
+    // TODO: LET TRY TO FIND THE KEY FIRST BEFORE SENDIMG ANY ERROR
+    let mut conn = db.connection.lock().await;
+    if already_exist(&mut *conn, key) {
+        match return_original_url(&mut *conn, key) {
+            Some(full_url) => Ok(Redirect::to(full_url)),
+            None => Err(status::Custom(
+                Status::NotFound,
+                "The URL is not found in the database".to_string(),
+            )),
+        }
+    } else {
+        Err(status::Custom(
+            Status::NotFound,
+            "The URL is not found in the database".to_string(),
+        ))
+    }
+}
+
 #[get("/")]
 fn index() -> &'static str {
     "Hello, world!"
@@ -47,5 +72,5 @@ fn rocket() -> _ {
         .manage(DbConn {
             connection: establish_connection().into(),
         })
-        .mount("/", routes![index, create_url_route])
+        .mount("/", routes![index, create_url_route, redirect_user])
 }
