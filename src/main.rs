@@ -10,6 +10,7 @@ use rocket::serde::json::Json;
 use rocket::serde::Deserialize;
 use rocket::tokio::sync::Mutex;
 use rocket::State;
+use rocket_dyn_templates::Template;
 
 struct DbConn {
     connection: Mutex<SqliteConnection>,
@@ -99,4 +100,5 @@ fn rocket() -> _ {
             connection: establish_connection().into(),
         })
         .mount("/", routes![index, create_url_route, redirect_user])
+        .attach(Template::fairing())
 }

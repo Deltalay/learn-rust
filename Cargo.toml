@@ -12,3 +12,6 @@ bcrypt = "0.16.0"
 rand = "0.8.5"
 base64 = "0.22.1"
 sha256 = "1.5.0"
+[dependencies.rocket_dyn_templates]
+version = "0.2.0"
+features = ["minijinja"]
