@@ -10,7 +10,7 @@ use rocket::serde::json::Json;
 use rocket::serde::Deserialize;
 use rocket::tokio::sync::Mutex;
 use rocket::State;
-use rocket_dyn_templates::Template;
+use rocket_dyn_templates::{context, Template};
 
 struct DbConn {
     connection: Mutex<SqliteConnection>,
@@ -89,8 +89,10 @@ async fn redirect_user<'a>(
 }
 
 #[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
+fn index() -> Template {
+    Template::render("site/index", context! {
+        title: "testing"
+    })
 }
 
 #[launch]
