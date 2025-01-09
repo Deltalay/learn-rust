@@ -50,10 +50,14 @@ async fn redirect_user<'a>(
         match return_original_url(&mut *conn, key) {
             Some((full_url, Some(expiration))) => {
                 let today = chrono::Local::now().naive_local();
+                use learn_rust::schema::url::dsl::url;
                 if expiration < today {
+                    // Delete the URL because Why not?
+                    diesel::delete(url.filter(short_url.eq(key)))
+                        .execute(&mut *conn)
+                        .expect("Error delete URL");
                     return Err(status::Custom(Status::Gone, "The URL has expired and soon be deleted from database. Please create new one.".to_string()));
                 }
-                use learn_rust::schema::url::dsl::url;
                 let update_access_view = diesel::update(url.filter(short_url.eq(key)))
                     .set(access_count.eq(access_count + 1))
                     .execute(&mut *conn)
