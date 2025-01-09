@@ -8,7 +8,7 @@ use diesel::{dsl::exists, prelude::*, select};
 use dotenvy::dotenv;
 use models::{NewUrl, Url};
 use rand::Rng;
-use schema::url::long_url;
+use schema::url::{expires_at, long_url};
 use std::env;
 pub fn establish_connection() -> SqliteConnection {
     dotenv().ok();
@@ -75,11 +75,14 @@ pub fn already_exist(conn: &mut SqliteConnection, shorten_url: &str) -> bool {
     check_exist_url
 }
 
-pub fn return_original_url(conn: &mut SqliteConnection, key_url: &str) -> Option<String> {
+pub fn return_original_url(
+    conn: &mut SqliteConnection,
+    key_url: &str,
+) -> Option<(String, Option<chrono::NaiveDateTime>)> {
     let get_full_url = url
         .filter(short_url.eq(key_url))
-        .select(long_url)
-        .first::<String>(conn)
+        .select((long_url, expires_at))
+        .first::<(String, Option<chrono::NaiveDateTime>)>(conn)
         .ok();
     get_full_url
 }

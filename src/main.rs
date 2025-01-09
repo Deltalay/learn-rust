@@ -44,11 +44,15 @@ async fn redirect_user<'a>(
     db: &State<DbConn>,
     key: &'a str,
 ) -> Result<Redirect, status::Custom<String>> {
-    // TODOL Check expire
+    // TODO: Check expire
     let mut conn = db.connection.lock().await;
     if already_exist(&mut *conn, key) {
         match return_original_url(&mut *conn, key) {
-            Some(full_url) => {
+            Some((full_url, Some(expiration))) => {
+                let today = chrono::Local::now().naive_local();
+                if expiration < today {
+                    return Err(status::Custom(Status::Gone, "The URL has expired and soon be deleted from database. Please create new one.".to_string()));
+                }
                 use learn_rust::schema::url::dsl::url;
                 let update_access_view = diesel::update(url.filter(short_url.eq(key)))
                     .set(access_count.eq(access_count + 1))
@@ -62,6 +66,10 @@ async fn redirect_user<'a>(
                     )),
                 }
             }
+            Some((_, None)) => Err(status::Custom(
+                Status::Gone,
+                "The URL that you provide exist in our database, but it has expired.".to_string(),
+            )),
             None => Err(status::Custom(
                 Status::NotFound,
                 "The URL is not found in the database".to_string(),
