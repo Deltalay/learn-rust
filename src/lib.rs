@@ -86,7 +86,9 @@ pub fn return_original_url(
         .ok();
     get_full_url
 }
-
+pub fn get_all(conn: &mut SqliteConnection) -> Vec<Url> {
+    url.select(Url::as_select()).load(conn).expect("Well Lol")
+}
 pub fn create_url(
     conn: &mut SqliteConnection,
     long_url_string: &str,

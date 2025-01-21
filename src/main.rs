@@ -3,7 +3,7 @@ extern crate rocket;
 use chrono::{Duration, Utc};
 use diesel::prelude::*;
 use learn_rust::schema::url::{access_count, short_url};
-use learn_rust::{already_exist, create_url, establish_connection, return_original_url};
+use learn_rust::{already_exist, create_url, establish_connection, get_all, return_original_url};
 use rocket::http::Status;
 use rocket::response::{status, Redirect};
 use rocket::serde::json::Json;
@@ -39,7 +39,12 @@ async fn create_url_route(
     let data: learn_rust::models::Url = create_url(&mut *conn, url_data.url, Some(expire));
     return Json(data);
 }
-
+#[get("/all")]
+async fn get_all_url(db: &State<DbConn>) -> Json<Vec<learn_rust::models::Url>> {
+    let mut conn = db.connection.lock().await;
+    let get_everything = get_all(&mut *conn);
+    return Json(get_everything);
+}
 #[get("/<key>")]
 async fn redirect_user<'a>(
     db: &State<DbConn>,
@@ -87,12 +92,15 @@ async fn redirect_user<'a>(
         ))
     }
 }
-
+// Too lazy to implement AUTH lol
 #[get("/")]
 fn index() -> Template {
-    Template::render("site/index", context! {
-        title: "testing"
-    })
+    Template::render(
+        "site/index",
+        context! {
+            title: "testing"
+        },
+    )
 }
 
 #[launch]
@@ -101,6 +109,9 @@ fn rocket() -> _ {
         .manage(DbConn {
             connection: establish_connection().into(),
         })
-        .mount("/", routes![index, create_url_route, redirect_user])
+        .mount(
+            "/",
+            routes![index, create_url_route, redirect_user, get_all_url],
+        )
         .attach(Template::fairing())
 }
